@@ -18,3 +18,18 @@ export const updateProfileSchema = z
     skillIds: z.array(z.string().uuid('Each skill id must be a valid UUID')).max(30),
   })
   .strict();
+  export const updateContactSchema = z
+  .object({
+    contactEmail: z.string().trim().email('Valid contact email required').nullable().optional(),
+    discord: z.string().trim().min(2).max(100).nullable().optional(),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^[+0-9\s\-()]{7,20}$/, 'Phone must be 7-20 characters: digits, +, -, spaces, ()')
+      .nullable()
+      .optional(),
+  })
+  .strict()
+  .refine((obj) => Object.keys(obj).length > 0, {
+    message: 'Provide at least one field to update',
+  });

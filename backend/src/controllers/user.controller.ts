@@ -39,3 +39,20 @@ export const replaceMySkills = async (req: Request, res: Response, next: NextFun
       next(err);
     }
   };
+  export const getMyContact = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const contact = await userModel.getContact(req.supabase!, req.user!.id);
+      res.status(200).json(contact);
+    } catch (err) {
+      next(err);
+    }
+  };
+  
+  export const updateMyContact = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const contact = await userModel.updateContact(req.supabase!, req.user!.id, req.body);
+      res.status(200).json(contact);
+    } catch (err) {
+      next(err);
+    }
+  };

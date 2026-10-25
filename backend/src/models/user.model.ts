@@ -128,3 +128,42 @@ const getUserSkills = async (db: SupabaseClient, userId: string) => {
   
     return getUserSkills(db, userId);
   };
+  const toContact = (row: any) => ({
+    contactEmail: row?.contact_email ?? null,
+    discord: row?.discord ?? null,
+    phone: row?.phone ?? null,
+  });
+  
+  export const getContact = async (db: SupabaseClient, userId: string) => {
+    const { data, error } = await db
+      .from('user_contacts')
+      .select('contact_email, discord, phone')
+      .eq('user_id', userId)
+      .maybeSingle();
+  
+    if (error) throw error;
+    if (!data) throw ApiError.notFound('Contact details not found');
+    return toContact(data);
+  };
+  
+  export const updateContact = async (
+    db: SupabaseClient,
+    userId: string,
+    input: { contactEmail?: string | null; discord?: string | null; phone?: string | null }
+  ) => {
+    const changes: Record<string, unknown> = {};
+    if (input.contactEmail !== undefined) changes.contact_email = input.contactEmail;
+    if (input.discord !== undefined) changes.discord = input.discord;
+    if (input.phone !== undefined) changes.phone = input.phone;
+  
+    const { data, error } = await db
+      .from('user_contacts')
+      .update(changes)
+      .eq('user_id', userId)
+      .select('contact_email, discord, phone')
+      .maybeSingle();
+  
+    if (error) throw error;
+    if (!data) throw ApiError.notFound('Contact details not found');
+    return toContact(data);
+  };
