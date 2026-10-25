@@ -1,21 +1,28 @@
+
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { z } from 'zod';
 import { ApiError } from '../utils/apiError';
 
+type Source = 'body' | 'query' | 'params';
+
 export const validate =
-  (schema: ZodSchema, source: 'body' | 'query' = 'body') =>
+  (schema: z.ZodType, source: Source = 'body') =>
   (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(source === 'body' ? req.body : req.query);
+    const result = schema.safeParse(req[source]);
 
     if (!result.success) {
-      const message = result.error.issues.map((i) => i.message).join(', ');
+      const message = result.error.issues
+        .map((issue) => issue.message)
+        .join(', ');
+
       return next(ApiError.badRequest(message));
     }
 
     if (source === 'body') {
       req.body = result.data;
     } else {
-      res.locals.query = result.data; // cleaned query values
+      res.locals[source] = result.data;
     }
+
     next();
   };

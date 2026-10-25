@@ -56,3 +56,24 @@ export const replaceMySkills = async (req: Request, res: Response, next: NextFun
       next(err);
     }
   };
+  export const searchTalent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = res.locals.query;
+      const { data, total } = await userModel.searchTalent(req.supabase!, query);
+  
+      res.status(200).json({
+        data,
+        meta: { page: query.page, limit: query.limit, total },
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+  export const getPublicProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const profile = await userModel.getPublicProfile(req.supabase!, res.locals.params.userId);
+      res.status(200).json(profile);
+    } catch (err) {
+      next(err);
+    }
+  };

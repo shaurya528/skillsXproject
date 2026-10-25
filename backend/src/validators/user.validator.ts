@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationFields } from '../utils/pagination';
 
 export const updateProfileSchema = z
   .object({
@@ -32,4 +33,23 @@ export const updateProfileSchema = z
   .strict()
   .refine((obj) => Object.keys(obj).length > 0, {
     message: 'Provide at least one field to update',
+  });
+  
+
+export const searchTalentQuerySchema = z
+  .object({
+    ...paginationFields,
+    skillIds: z
+      .string()
+      .transform((s) => s.split(',').map((id) => id.trim()).filter(Boolean))
+      .pipe(z.array(z.string().uuid('Each skill id must be a valid UUID')).min(1).max(10))
+      .optional(),
+    skillMatch: z.enum(['any', 'all']).default('any'),
+    major: z.string().trim().min(1, 'major cannot be empty').max(100).optional(),
+    college: z.string().trim().min(1, 'college cannot be empty').max(150).optional(),
+    q: z.string().trim().min(1, 'q cannot be empty').max(100).optional(),
+  })
+  .strict();
+  export const userIdParamSchema = z.object({
+    userId: z.string().uuid('userId must be a valid UUID'),
   });
