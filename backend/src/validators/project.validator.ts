@@ -46,3 +46,20 @@ export const changeStatusSchema = z
     status: z.enum(PROJECT_STATUSES),
   })
   .strict();
+  import { paginationFields } from '../utils/pagination';
+
+export const searchProjectsQuerySchema = z
+  .object({
+    ...paginationFields,
+    skillIds: z
+      .string()
+      .transform((s) => s.split(',').map((id) => id.trim()).filter(Boolean))
+      .pipe(z.array(z.string().uuid('Each skill id must be a valid UUID')).min(1).max(10))
+      .optional(),
+    skillMatch: z.enum(['any', 'all']).default('any'),
+    domain: z.string().trim().min(1, 'domain cannot be empty').max(100).optional(),
+    stage: z.enum(STAGES).optional(),
+    q: z.string().trim().min(1, 'q cannot be empty').max(100).optional(),
+    sort: z.enum(['newest', 'oldest']).default('newest'),
+  })
+  .strict();

@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import {
-    createProject, getProject, updateProject, replaceRequiredSkills, deleteProject,changeProjectStatus
+    createProject, getProject, updateProject, replaceRequiredSkills, deleteProject,changeProjectStatus,searchProjects
   } from '../controllers/project.controller';
 import { requireAuth } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import {
-    createProjectSchema, projectIdParamSchema, updateProjectSchema, replaceRequiredSkillsSchema,changeStatusSchema
+    createProjectSchema, projectIdParamSchema, updateProjectSchema, replaceRequiredSkillsSchema,changeStatusSchema, searchProjectsQuerySchema
   } from '../validators/project.validator';
 
 const router = Router();
@@ -33,5 +33,6 @@ router.patch(
     validate(changeStatusSchema),
     changeProjectStatus
   );
+  router.get('/', validate(searchProjectsQuerySchema, 'query'), searchProjects);
 
 export default router;

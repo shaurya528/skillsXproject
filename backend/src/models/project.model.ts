@@ -1,6 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { ApiError } from '../utils/apiError';
 import { assertSkillsExist } from './skill.model';
+import { getRange } from '../utils/pagination';
+
 
 // One query returns the project, its owner summary, required skills and member count.
 // Private contact data is never selected here.
@@ -271,4 +273,84 @@ export const changeProjectStatus = async (
   }
 
   return getProject(db, projectId);
+};
+
+
+const escapeLike = (s: string) => s.replace(/[%_\\]/g, '\\$&');
+
+// Which projects require the requested skills?
+const findProjectIdsBySkills = async (
+  db: SupabaseClient,
+  skillIds: string[],
+  match: 'any' | 'all'
+) => {
+  const wanted = [...new Set(skillIds)];
+
+  const { data, error } = await db
+    .from('project_required_skills')
+    .select('project_id, skill_id')
+    .in('skill_id', wanted);
+  if (error) throw error;
+
+  // project -> set of wanted skills it requires
+  const perProject = new Map<string, Set<string>>();
+  for (const row of data ?? []) {
+    if (!perProject.has(row.project_id)) perProject.set(row.project_id, new Set());
+    perProject.get(row.project_id)!.add(row.skill_id);
+  }
+
+  return [...perProject.entries()]
+    .filter(([, required]) => match === 'any' || required.size === wanted.length)
+    .map(([projectId]) => projectId);
+};
+
+export const searchProjects = async (
+  db: SupabaseClient,
+  f: {
+    skillIds?: string[];
+    skillMatch: 'any' | 'all';
+    domain?: string;
+    stage?: string;
+    q?: string;
+    sort: 'newest' | 'oldest';
+    page: number;
+    limit: number;
+  }
+) => {
+  // Step 1: narrow by skills first (if asked)
+  let projectIds: string[] | undefined;
+  if (f.skillIds && f.skillIds.length > 0) {
+    projectIds = await findProjectIdsBySkills(db, f.skillIds, f.skillMatch);
+    if (projectIds.length === 0) return { data: [], total: 0 };
+  }
+
+  // Step 2: main query. Only projects that are open for recruitment.
+  const buildQuery = () => {
+    let query = db
+      .from('projects')
+      .select(PROJECT_SELECT, { count: 'exact' })
+      .eq('status', 'Looking for Members');
+
+    if (projectIds) query = query.in('id', projectIds);
+    if (f.domain) query = query.ilike('domain', `%${escapeLike(f.domain)}%`);
+    if (f.stage) query = query.eq('stage', f.stage);
+    if (f.q) query = query.ilike('title', `%${escapeLike(f.q)}%`);
+
+    return query
+      .order('created_at', { ascending: f.sort === 'oldest' })
+      .order('id');
+  };
+
+  const { from, to } = getRange(f.page, f.limit);
+  const { data, error, count } = await buildQuery().range(from, to);
+
+  // A page beyond the last one is an empty list, not an error
+  if (error?.code === 'PGRST103') {
+    const head = await buildQuery().range(0, 0);
+    if (head.error) throw head.error;
+    return { data: [], total: head.count ?? 0 };
+  }
+  if (error) throw error;
+
+  return { data: (data ?? []).map(toProject), total: count ?? 0 };
 };

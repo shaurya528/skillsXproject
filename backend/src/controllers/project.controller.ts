@@ -67,3 +67,16 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
       next(err);
     }
   };
+  export const searchProjects = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = res.locals.query;
+      const { data, total } = await projectModel.searchProjects(req.supabase!, query);
+  
+      res.status(200).json({
+        data,
+        meta: { page: query.page, limit: query.limit, total },
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
