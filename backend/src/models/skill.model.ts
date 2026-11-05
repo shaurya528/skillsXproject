@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { ApiError } from '../utils/apiError';
 
 export const listSkills = async (
   db: SupabaseClient,
@@ -23,4 +24,17 @@ export const listSkills = async (
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
+};
+
+
+// Throws a 400 if any of the ids is not in the fixed skills list
+export const assertSkillsExist = async (db: SupabaseClient, ids: string[]) => {
+  if (ids.length === 0) return;
+
+  const { data, error } = await db.from('skills').select('id').in('id', ids);
+  if (error) throw error;
+
+  if ((data ?? []).length !== ids.length) {
+    throw ApiError.badRequest('One or more skills do not exist');
+  }
 };
