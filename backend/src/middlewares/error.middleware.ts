@@ -1,6 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/apiError';
 
+const DB_MESSAGES: [text: string, status: number, code: string][] = [
+  ['Team is full', 409, 'TEAM_FULL'],
+  ['already a member', 409, 'ALREADY_MEMBER'],
+  ['already been decided', 409, 'ALREADY_DECIDED'],
+  ['Only the project lead', 403, 'FORBIDDEN'],
+  ['Only the applicant', 403, 'FORBIDDEN'],
+  ['Only the invited user', 403, 'FORBIDDEN'],
+  ['Only the inviter', 403, 'FORBIDDEN'],
+  ['Only status can be changed', 400, 'BAD_REQUEST'],
+];
+
+
 // Runs when no route matched the URL
 export const notFoundHandler = (_req: Request, _res: Response, next: NextFunction) => {
   next(ApiError.notFound('Route not found'));
@@ -31,6 +43,11 @@ export const errorHandler = (
   if (msg.includes('already been decided')) {
     return res.status(409).json({ error: { code: 'ALREADY_DECIDED', message: msg } });
   }
+  
+const match = DB_MESSAGES.find(([text]) => msg.includes(text));
+if (match) {
+  return res.status(match[1]).json({ error: { code: match[2], message: msg } });
+}
 
   // Anything unexpected
   console.error(err);

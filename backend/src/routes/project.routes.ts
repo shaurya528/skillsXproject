@@ -7,10 +7,12 @@ import { validate } from '../middlewares/validate.middleware';
 import {
     createProjectSchema, projectIdParamSchema, updateProjectSchema, replaceRequiredSkillsSchema,changeStatusSchema, searchProjectsQuerySchema
   } from '../validators/project.validator';
+  import { submitApplication,listProjectApplications } from '../controllers/application.controller';
+import { submitApplicationSchema,listApplicationsQuerySchema } from '../validators/application.validator';
 
 const router = Router();
 
-router.use(requireAuth); // every /projects route needs a logged-in user
+router.use(requireAuth); 
 
 router.post('/', validate(createProjectSchema), createProject);
 router.get('/:projectId', validate(projectIdParamSchema, 'params'), getProject);
@@ -34,5 +36,19 @@ router.patch(
     changeProjectStatus
   );
   router.get('/', validate(searchProjectsQuerySchema, 'query'), searchProjects);
+  
+
+router.post(
+  '/:projectId/applications',
+  validate(projectIdParamSchema, 'params'),
+  validate(submitApplicationSchema),
+  submitApplication
+);
+router.get(
+  '/:projectId/applications',
+  validate(projectIdParamSchema, 'params'),
+  validate(listApplicationsQuerySchema, 'query'),
+  listProjectApplications
+);
 
 export default router;

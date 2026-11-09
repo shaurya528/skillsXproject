@@ -10,6 +10,5 @@ export const PROJECT_STATUSES = [
   'Archived',
 ] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
-
-export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
-export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
+export const APPLICATION_STATUSES = ['pending', 'accepted', 'rejected', 'withdrawn'] as const;
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as userModel from '../models/user.model';
+import * as applicationModel from '../models/application.model';
 
 export const getMe = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -77,3 +78,18 @@ export const replaceMySkills = async (req: Request, res: Response, next: NextFun
       next(err);
     }
   };
+  
+
+export const listMyApplications = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = res.locals.query;
+    const { data, total } = await applicationModel.listMyApplications(
+      req.supabase!,
+      req.user!.id,
+      query
+    );
+    res.status(200).json({ data, meta: { page: query.page, limit: query.limit, total } });
+  } catch (err) {
+    next(err);
+  }
+};
