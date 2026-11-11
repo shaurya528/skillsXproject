@@ -9,6 +9,8 @@ import {
   } from '../validators/project.validator';
   import { submitApplication,listProjectApplications } from '../controllers/application.controller';
 import { submitApplicationSchema,listApplicationsQuerySchema } from '../validators/application.validator';
+import { sendInvitation, listProjectInvitations } from '../controllers/invitation.controller';
+import { sendInvitationSchema, listInvitationsQuerySchema } from '../validators/invitation.validator';
 
 const router = Router();
 
@@ -49,6 +51,20 @@ router.get(
   validate(projectIdParamSchema, 'params'),
   validate(listApplicationsQuerySchema, 'query'),
   listProjectApplications
+);
+
+
+router.post(
+  '/:projectId/invitations',
+  validate(projectIdParamSchema, 'params'),
+  validate(sendInvitationSchema),
+  sendInvitation
+);
+router.get(
+  '/:projectId/invitations',
+  validate(projectIdParamSchema, 'params'),
+  validate(listInvitationsQuerySchema, 'query'),
+  listProjectInvitations
 );
 
 export default router;

@@ -4,6 +4,8 @@ import userRoutes from './user.routes';
 import skillRoutes from './skill.routes';
 import projectRoutes from './project.routes';
 import applicationRoutes from './application.routes';
+import invitationRoutes from './invitation.routes';
+
 
 
 const router = Router();
@@ -23,6 +25,8 @@ router.use('/projects', projectRoutes);
 
 
 router.use('/applications', applicationRoutes);
+
+router.use('/invitations', invitationRoutes);
 
 
 export default router;

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as userModel from '../models/user.model';
 import * as applicationModel from '../models/application.model';
+import * as invitationModel from '../models/invitation.model';
 
 export const getMe = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -84,6 +85,21 @@ export const listMyApplications = async (req: Request, res: Response, next: Next
   try {
     const query = res.locals.query;
     const { data, total } = await applicationModel.listMyApplications(
+      req.supabase!,
+      req.user!.id,
+      query
+    );
+    res.status(200).json({ data, meta: { page: query.page, limit: query.limit, total } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+export const listMyInvitations = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = res.locals.query;
+    const { data, total } = await invitationModel.listMyInvitations(
       req.supabase!,
       req.user!.id,
       query
