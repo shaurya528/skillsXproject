@@ -195,7 +195,7 @@ const UPDATE_FIELDS = {
 const ALLOWED_TRANSITIONS: Record<ProjectStatus, ProjectStatus[]> = {
   'Looking for Members': ['Closed'],
   'Closed': ['Looking for Members', 'Team Formed'],
-  'Team Formed': ['In Progress'],
+  'Team Formed': ['In Progress', 'Looking for Members'],  
   'In Progress': ['Completed'],
   'Completed': ['Archived'],
   'Archived': [],
@@ -250,7 +250,7 @@ export const changeProjectStatus = async (
   }
 
   // Reopening recruitment only makes sense if there is a free slot
-  if (current === 'Closed' && newStatus === 'Looking for Members') {
+  if (newStatus === 'Looking for Members') {
     const { count, error: countError } = await db
       .from('project_members')
       .select('*', { count: 'exact', head: true })

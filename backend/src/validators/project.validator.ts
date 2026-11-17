@@ -62,4 +62,12 @@ export const searchProjectsQuerySchema = z
     q: z.string().trim().min(1, 'q cannot be empty').max(100).optional(),
     sort: z.enum(['newest', 'oldest']).default('newest'),
   })
+  export const listMembersQuerySchema = z
+  .object({ ...paginationFields })
   .strict();
+
+export const memberParamsSchema = z.object({
+  projectId: z.string().uuid('projectId must be a valid UUID'),
+  userId: z.string().uuid('userId must be a valid UUID'),
+})
+.strict();

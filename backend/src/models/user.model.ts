@@ -272,3 +272,27 @@ export const getPublicProfile = async (db: SupabaseClient, userId: string) => {
 
   return toTalent(data);
 };
+export const getMatchedContact = async (db: SupabaseClient, userId: string) => {
+  // 1) Does this person exist? (profiles are public)
+  const { data: profile, error: profileError } = await db
+    .from('profiles')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+  if (profileError) throw profileError;
+  if (!profile) throw ApiError.notFound('User not found');
+
+  // 2) Ask for the contact row. RLS returns it only to the owner or a matched teammate.
+  const { data, error } = await db
+    .from('user_contacts')
+    .select('contact_email, discord, phone')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+
+  if (!data) {
+    throw ApiError.forbidden('Contact details are shared only between matched teammates');
+  }
+
+  return toContact(data);
+};

@@ -109,3 +109,11 @@ export const listMyInvitations = async (req: Request, res: Response, next: NextF
     next(err);
   }
 };
+export const getMatchedContact = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const contact = await userModel.getMatchedContact(req.supabase!, res.locals.params.userId);
+    res.status(200).json(contact);
+  } catch (err) {
+    next(err);
+  }
+};
