@@ -5,6 +5,8 @@ import skillRoutes from './skill.routes';
 import projectRoutes from './project.routes';
 import applicationRoutes from './application.routes';
 import invitationRoutes from './invitation.routes';
+import notificationRoutes from './notification.routes';
+
 
 
 
@@ -27,6 +29,8 @@ router.use('/projects', projectRoutes);
 router.use('/applications', applicationRoutes);
 
 router.use('/invitations', invitationRoutes);
+
+router.use('/notifications', notificationRoutes);
 
 
 export default router;
