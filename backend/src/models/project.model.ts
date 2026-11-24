@@ -4,8 +4,7 @@ import { assertSkillsExist } from './skill.model';
 import { getRange } from '../utils/pagination';
 
 
-// One query returns the project, its owner summary, required skills and member count.
-// Private contact data is never selected here.
+
 const PROJECT_SELECT = `
   id, owner_id, title, description, domain, stage, status,
   max_team_size, github_url, created_at, updated_at,
@@ -205,9 +204,6 @@ const ALLOWED_TRANSITIONS: Record<ProjectStatus, ProjectStatus[]> = {
 const ENDS_RECRUITMENT: ProjectStatus[] = [
   'Team Formed', 'In Progress', 'Completed', 'Archived',
 ];
-
-// Reject pending applications and cancel pending invitations.
-// The database triggers send the notifications.
 const clearPendingItems = async (db: SupabaseClient, projectId: string) => {
   const { error: appError } = await db
     .from('applications')
@@ -353,4 +349,53 @@ export const searchProjects = async (
   if (error) throw error;
 
   return { data: (data ?? []).map(toProject), total: count ?? 0 };
+};
+export const listMyProjects = async (
+  db: SupabaseClient,
+  userId: string,
+  f: { role?: 'lead' | 'member'; status?: string; page: number; limit: number }
+) => {
+  // 1) Which projects am I on, and as what?
+  let membershipQuery = db
+    .from('project_members')
+    .select('project_id, role')
+    .eq('user_id', userId);
+  if (f.role) membershipQuery = membershipQuery.eq('role', f.role);
+
+  const { data: memberships, error } = await membershipQuery;
+  if (error) throw error;
+  if (!memberships || memberships.length === 0) return { data: [], total: 0 };
+
+  const roleByProject = new Map<string, string>(
+    memberships.map((m: any) => [m.project_id, m.role])
+  );
+  const ids = [...roleByProject.keys()];
+
+  const buildQuery = () => {
+    let query = db
+      .from('projects')
+      .select(PROJECT_SELECT, { count: 'exact' })
+      .in('id', ids);
+
+    if (f.status) query = query.eq('status', f.status);
+
+    return query.order('updated_at', { ascending: false }).order('id');
+  };
+
+  const { from, to } = getRange(f.page, f.limit);
+  const { data, error: listError, count } = await buildQuery().range(from, to);
+
+  if (listError?.code === 'PGRST103') {
+    const head = await buildQuery().range(0, 0);
+    if (head.error) throw head.error;
+    return { data: [], total: head.count ?? 0 };
+  }
+  if (listError) throw listError;
+  return {
+    data: (data ?? []).map((row: any) => ({
+      ...toProject(row),
+      myRole: roleByProject.get(row.id),
+    })),
+    total: count ?? 0,
+  };
 };

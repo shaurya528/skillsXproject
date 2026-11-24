@@ -117,3 +117,27 @@ export const getMatchedContact = async (req: Request, res: Response, next: NextF
     next(err);
   }
 };
+import * as projectModel from '../models/project.model';
+
+export const getMyDashboard = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const dashboard = await userModel.getMyDashboard(req.supabase!, req.user!.id);
+    res.status(200).json(dashboard);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const listMyProjects = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const query = res.locals.query;
+    const { data, total } = await projectModel.listMyProjects(
+      req.supabase!,
+      req.user!.id,
+      query
+    );
+    res.status(200).json({ data, meta: { page: query.page, limit: query.limit, total } });
+  } catch (err) {
+    next(err);
+  }
+};

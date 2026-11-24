@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { STAGES ,PROJECT_STATUSES} from '../types';
+import { paginationFields } from '../utils/pagination';
 
 
 export const createProjectSchema = z
@@ -46,7 +47,7 @@ export const changeStatusSchema = z
     status: z.enum(PROJECT_STATUSES),
   })
   .strict();
-  import { paginationFields } from '../utils/pagination';
+  
 
 export const searchProjectsQuerySchema = z
   .object({
@@ -69,5 +70,12 @@ export const searchProjectsQuerySchema = z
 export const memberParamsSchema = z.object({
   projectId: z.string().uuid('projectId must be a valid UUID'),
   userId: z.string().uuid('userId must be a valid UUID'),
-})
+}).strict()
+export const listMyProjectsQuerySchema = z
+  .object({
+    ...paginationFields,
+    role: z.enum(['lead', 'member']).optional(),
+    status: z.enum(PROJECT_STATUSES).optional(),
+  })
+  
 .strict();

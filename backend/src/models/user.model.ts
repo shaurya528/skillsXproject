@@ -296,3 +296,43 @@ export const getMatchedContact = async (db: SupabaseClient, userId: string) => {
 
   return toContact(data);
 };
+import { getUnreadCount } from './notification.model';
+import { listMyProjects } from './project.model';
+
+const headCount = (db: SupabaseClient, table: string) =>
+  db.from(table).select('id', { count: 'exact', head: true });
+
+export const getMyDashboard = async (db: SupabaseClient, userId: string) => {
+  const [sentApps, sentInvs, receivedInvs, unread, owned, joined, ownedIds] = await Promise.all([
+    headCount(db, 'applications').eq('applicant_id', userId).eq('status', 'pending'),
+    headCount(db, 'invitations').eq('inviter_id', userId).eq('status', 'pending'),
+    headCount(db, 'invitations').eq('invitee_id', userId).eq('status', 'pending'),
+    getUnreadCount(db, userId),
+    listMyProjects(db, userId, { role: 'lead', page: 1, limit: 5 }),
+    listMyProjects(db, userId, { role: 'member', page: 1, limit: 5 }),
+    db.from('projects').select('id').eq('owner_id', userId),
+  ]);
+
+  for (const r of [sentApps, sentInvs, receivedInvs, ownedIds]) {
+    if (r.error) throw r.error;
+  }
+
+  // Pending applications waiting on the projects I lead
+  let receivedApps = 0;
+  const myProjectIds = (ownedIds.data ?? []).map((p: any) => p.id);
+  if (myProjectIds.length > 0) {
+    const { count, error } = await headCount(db, 'applications')
+      .in('project_id', myProjectIds)
+      .eq('status', 'pending');
+    if (error) throw error;
+    receivedApps = count ?? 0;
+  }
+
+  return {
+    applications: { sentPending: sentApps.count ?? 0, receivedPending: receivedApps },
+    invitations: { receivedPending: receivedInvs.count ?? 0, sentPending: sentInvs.count ?? 0 },
+    unreadNotifications: unread,
+    ownedProjects: { total: owned.total, items: owned.data },
+    joinedProjects: { total: joined.total, items: joined.data },
+  };
+};

@@ -2,14 +2,14 @@ import { Router } from 'express';
 import { requireAuth } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import {
-    getMe, updateMe, deleteMe, replaceMySkills, getMyContact, updateMyContact,searchTalent,getPublicProfile,listMyApplications,listMyInvitations,getMatchedContact
+    getMe, updateMe, deleteMe, replaceMySkills, getMyContact, updateMyContact,searchTalent,getPublicProfile,listMyApplications,listMyInvitations,getMatchedContact,getMyDashboard, listMyProjects
   } from '../controllers/user.controller';
   import {
     updateProfileSchema, replaceSkillsSchema, updateContactSchema,searchTalentQuerySchema,userIdParamSchema
   } from '../validators/user.validator';
   import { listApplicationsQuerySchema } from '../validators/application.validator';
   import { listInvitationsQuerySchema } from '../validators/invitation.validator';
-
+  import { listMyProjectsQuerySchema } from '../validators/project.validator';
 
   
 
@@ -27,5 +27,7 @@ router.get('/:userId', validate(userIdParamSchema, 'params'), getPublicProfile);
 router.get('/me/applications', validate(listApplicationsQuerySchema, 'query'), listMyApplications);
 router.get('/me/invitations', validate(listInvitationsQuerySchema, 'query'), listMyInvitations);
 router.get('/:userId/contact', validate(userIdParamSchema, 'params'), getMatchedContact);
+router.get('/me/dashboard', getMyDashboard);
+router.get('/me/projects', validate(listMyProjectsQuerySchema, 'query'), listMyProjects);
 
 export default router;
