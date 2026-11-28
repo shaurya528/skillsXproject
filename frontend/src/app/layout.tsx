@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Bricolage_Grotesque } from 'next/font/google';
+import { Toaster } from '@/components/ui/toaster';
 import { APP_NAME } from '@/lib/constants';
 import './globals.css';
 
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${bricolage.variable}`}>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

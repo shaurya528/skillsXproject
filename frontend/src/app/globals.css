@@ -79,3 +79,8 @@ h1, h2, h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Stop the page behind an open modal from scrolling */
+body:has(dialog[open]) {
+  overflow: hidden;
+}

@@ -1,3 +1,6 @@
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Inbox } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +9,7 @@ import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
+import { UiDemos } from './ui-demos';
 
 const swatches = [
   ['bg-background border', 'background'],
@@ -60,6 +64,29 @@ export default function DesignPage() {
           <Button disabled>Disabled</Button>
           <Button size="sm">Small</Button>
           <Button size="lg">Large</Button>
+        </div>
+      </Section>
+      <Section id="forms" title="Form fields">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input label="Email" type="email" placeholder="you@college.edu" required hint="Use your college email." />
+          <Input label="Password" type="password" placeholder="At least 8 characters" required />
+          <Input label="GitHub" placeholder="https://github.com/..." error="Enter a valid URL" />
+          <Input label="Locked field" value="Cannot edit this" disabled readOnly />
+          <Select label="Stage" placeholder="Choose a stage">
+            <option>Idea</option>
+            <option>Ongoing</option>
+            <option>Final Phase</option>
+          </Select>
+          <Select label="Sort by" error="Pick an option" placeholder="Choose">
+            <option>Newest</option>
+            <option>Oldest</option>
+          </Select>
+          <Textarea
+            label="Message (optional)"
+            placeholder="Tell the team why you'd like to join"
+            hint="Up to 1000 characters."
+            className="sm:col-span-2"
+          />
         </div>
       </Section>
 
@@ -131,6 +158,7 @@ export default function DesignPage() {
           <Avatar name="Neha Verma" />
         </div>
       </Section>
+      <UiDemos />
     </main>
   );
 }
